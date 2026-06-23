@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+/* ── Design Tokens: Claude Code Daytime Style ── */
+@theme {
+  --color-base: #faf9f7;
+  --color-surface: #f0ede8;
+  --color-elevated: #ffffff;
+  --color-muted: #8a8580;
+  --color-accent: #c45d2c;
+  --color-accent-hover: #b04e1f;
+  --color-edge: #e5e2dc;
+  --color-edge-hover: #d5d0c8;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", monospace;
+}
+
+/* ── Base ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-base);
+  color: #2d2926;
+  line-height: 1.7;
+}
+
+::selection {
+  background: rgba(196, 93, 44, 0.15);
+  color: #2d2926;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-edge-hover);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}
+
+/* ── Code blocks ── */
+pre {
+  font-family: var(--font-mono);
+  background: #f5f3ee !important;
+  border: 1px solid var(--color-edge);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-size: 0.8125rem;
+  line-height: 1.7;
+  color: #3d3833;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+:not(pre) > code {
+  background: rgba(196, 93, 44, 0.08);
+  color: var(--color-accent);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.82em;
+}
+
+/* ── highlight.js overrides (light warm) ── */
+.hljs {
+  background: transparent !important;
+  color: #3d3833;
+}
+.hljs-keyword { color: #a85624; font-weight: 500; }
+.hljs-string { color: #2e7d4f; }
+.hljs-comment { color: #9e9890; font-style: italic; }
+.hljs-function { color: #6b4c9a; }
+.hljs-number { color: #1a6fb5; }
+.hljs-title { color: #6b4c9a; }
+.hljs-built_in { color: #a85624; }
+.hljs-params { color: #3d3833; }
+.hljs-attr { color: #1a6fb5; }
+.hljs-literal { color: #1a6fb5; }
+.hljs-type { color: #a85624; }
+.hljs-meta { color: #9e9890; }
+.hljs-tag { color: #2e7d4f; }
+.hljs-name { color: #2e7d4f; }
+.hljs-attribute { color: #1a6fb5; }
+
+/* ── Tables ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border-bottom: 2px solid var(--color-edge);
+  color: var(--color-muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-edge);
+  color: #4a4540;
+}
+
+tr:hover td {
+  background: rgba(196, 93, 44, 0.03);
+}
+
+/* ── Markdown prose ── */
+.prose h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem;
+  color: #1a1714;
+  letter-spacing: -0.025em;
+}
+
+.prose h2 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin: 2.5rem 0 1rem;
+  color: #1a1714;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--color-edge);
+}
+
+.prose h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 2rem 0 0.75rem;
+  color: #2d2926;
+}
+
+.prose h4 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin: 1.5rem 0 0.5rem;
+  color: #2d2926;
+}
+
+.prose p {
+  margin: 0 0 1rem;
+  color: #5a5550;
+  line-height: 1.75;
+}
+
+.prose a {
+  color: var(--color-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.prose a:hover {
+  border-bottom-color: var(--color-accent);
+}
+
+.prose ul, .prose ol {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+  color: #5a5550;
+}
+
+.prose li {
+  margin-bottom: 0.35rem;
+}
+
+.prose li::marker {
+  color: var(--color-muted);
+}
+
+.prose blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--color-accent);
+  background: rgba(196, 93, 44, 0.04);
+  border-radius: 0 6px 6px 0;
+  color: #5a5550;
+}
+
+.prose blockquote p {
+  margin: 0;
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-edge);
+  margin: 2.5rem 0;
+}
+
+.prose img {
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--color-edge);
+}
+
+.prose strong {
+  color: #2d2926;
+  font-weight: 600;
+}
+
+/* ── Transitions ── */
+.transition-smooth {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
