@@ -25,7 +25,7 @@ export default function App() {
       <div className="pt-16">
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/docs/:category/:slug" element={<DocLayout />} />
+          <Route path="/docs/:category/*" element={<DocLayout />} />
         </Routes>
       </div>
     </div>

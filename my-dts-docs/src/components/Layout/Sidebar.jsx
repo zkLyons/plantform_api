@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useLocation } from 'react-router-dom'
 import useDocsStore from '../../stores/docsStore'
 import { docMeta } from '../../hooks/useDocs'
 
@@ -22,7 +22,7 @@ function ChevronIcon({ open }) {
 }
 
 function SidebarCategory({ category, label, docs }) {
-  const { category: activeCategory, slug: activeSlug } = useParams()
+  const location = useLocation()
   const [open, setOpen] = useState(true)
 
   return (
@@ -37,11 +37,12 @@ function SidebarCategory({ category, label, docs }) {
       {open && (
         <ul className="ml-3 border-l border-edge">
           {docs.map((doc) => {
-            const isActive = activeCategory === category && activeSlug === doc.slug
+            const path = `/docs/${category}/${doc.slug}`
+            const isActive = location.pathname === path
             return (
               <li key={doc.slug}>
                 <Link
-                  to={`/docs/${category}/${doc.slug}`}
+                  to={path}
                   className={`block px-4 py-1.5 text-[13px] transition-smooth -ml-[1px] border-l-2 ${
                     isActive
                       ? 'text-accent border-accent bg-accent/5 font-medium'
@@ -59,13 +60,69 @@ function SidebarCategory({ category, label, docs }) {
   )
 }
 
+function SidebarGroup({ label, docs }) {
+  const location = useLocation()
+  const [open, setOpen] = useState(true)
+
+  return (
+    <div className="mb-1">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-2 w-full px-3 py-1.5 text-[11px] font-medium text-muted hover:text-[#2d2926] transition-smooth"
+      >
+        <ChevronIcon open={open} />
+        {label}
+      </button>
+      {open && (
+        <ul className="ml-3 border-l border-edge">
+          {docs.map((doc) => {
+            const path = `/docs/api/${doc.slug}`
+            const isActive = location.pathname === path
+            return (
+              <li key={doc.slug}>
+                <Link
+                  to={path}
+                  className={`block px-4 py-1.5 text-[13px] transition-smooth -ml-[1px] border-l-2 ${
+                    isActive
+                      ? 'text-accent border-accent bg-accent/5 font-medium'
+                      : 'text-muted border-transparent hover:text-[#2d2926] hover:border-edge-hover'
+                  }`}
+                >
+                  {doc.sidebar_label || doc.title}
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+function ApiSidebar() {
+  const group = docMeta.find((g) => g.category === 'api')
+  if (!group) return null
+
+  return (
+    <div className="mb-2">
+      <div className="flex items-center gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted">
+        {group.label}
+      </div>
+      {group.groups.map((g) => (
+        <SidebarGroup key={g.label} label={g.label} docs={g.docs} />
+      ))}
+    </div>
+  )
+}
+
 export default function Sidebar() {
   const sidebarOpen = useDocsStore((s) => s.sidebarOpen)
   const setSidebarOpen = useDocsStore((s) => s.setSidebarOpen)
 
+  const tutorialsGroup = docMeta.find((g) => g.category === 'tutorials')
+
   return (
     <>
-      {/* Overlay for mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/20 lg:hidden"
@@ -79,9 +136,10 @@ export default function Sidebar() {
         }`}
       >
         <nav className="p-4 pt-3">
-          {docMeta.map((group) => (
-            <SidebarCategory key={group.category} {...group} />
-          ))}
+          {tutorialsGroup && (
+            <SidebarCategory category="tutorials" label={tutorialsGroup.label} docs={tutorialsGroup.docs} />
+          )}
+          <ApiSidebar />
         </nav>
       </aside>
     </>

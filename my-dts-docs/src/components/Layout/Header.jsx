@@ -4,8 +4,8 @@ import useDocsStore from '../../stores/docsStore'
 
 const navLinks = [
   { to: '/', label: '首页' },
-  { to: '/docs/tutorials/hello-world', label: '文档' },
-  { to: '/docs/tutorials/architecture', label: '在线调试' },
+  { to: '/docs/tutorials/hello-world', label: '开发教程', matchPrefix: '/docs/tutorials' },
+  { to: '/docs/api/quickstart/digital-twin-api', label: 'API 文档', matchPrefix: '/docs/api' },
 ]
 
 export default function Header() {
@@ -32,10 +32,9 @@ export default function Header() {
         {/* Nav links */}
         <nav className="hidden md:flex items-center gap-1">
           {navLinks.map((link) => {
-            const isActive =
-              link.to === '/'
-                ? location.pathname === '/'
-                : location.pathname.startsWith(link.to.split('/').slice(0, 3).join('/'))
+            const isActive = link.matchPrefix
+              ? location.pathname.startsWith(link.matchPrefix)
+              : location.pathname === '/'
 
             return (
               <Link
