@@ -54,9 +54,31 @@ export default function DocPage() {
             rehypePlugins={[rehypeHighlight]}
             components={{
               a({ href, children, ...props }) {
+                // Anchor link — same page scroll
+                if (href && href.startsWith('#')) {
+                  return (
+                    <a
+                      href={href}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        const el = document.getElementById(href.slice(1))
+                        if (el) {
+                          const y = el.getBoundingClientRect().top + window.scrollY - 80
+                          window.scrollTo({ top: y, behavior: 'smooth' })
+                          window.history.replaceState(null, '', href)
+                        }
+                      }}
+                      {...props}
+                    >
+                      {children}
+                    </a>
+                  )
+                }
+                // Internal link
                 if (href && href.startsWith('/')) {
                   return <a href={href} {...props}>{children}</a>
                 }
+                // External link
                 return <a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
               },
               code({ className, children, ...props }) {
