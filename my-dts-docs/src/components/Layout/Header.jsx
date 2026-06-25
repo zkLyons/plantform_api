@@ -10,6 +10,9 @@ const navLinks = [
 
 export default function Header() {
     const location = useLocation()
+    // 如果直接使用useDocsStore()就是订阅整个store，当store中的任何一个变量发生改变的时候，即时该组件没有使用这个变量，也会触发重新渲染。
+    // 在这里使用了选择器s => s.toggleSidebar，只使用store中的toggleSidebar属性。这是一个函数，它在应用的生命周期中永远不会改变，所以当 sidebarOpen 状态变化时，Header 组件 不会 重新渲染。
+
     const toggleSidebar = useDocsStore(s => s.toggleSidebar)
 
     return (
@@ -51,7 +54,7 @@ export default function Header() {
                             <path d="M21 21l-4.35-4.35" />
                         </svg>
                         <span>搜索文档</span>
-                        <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-surface rounded border border-edge text-muted">⌘K</kbd>
+                        <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-surface rounded border border-edge text-muted">ctr+K</kbd>
                     </button>
 
                     {/* GitHub */}
