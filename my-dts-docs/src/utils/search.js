@@ -22,7 +22,7 @@ function flattenDocMeta() {
                         sidebar_label: doc.sidebar_label,
                         category: category.category,
                         categoryLabel: category.label,
-                        groupLabel: group.label,
+                        groupLabel: group.label
                     })
                 }
             }
@@ -35,7 +35,7 @@ function flattenDocMeta() {
                     sidebar_label: doc.sidebar_label,
                     category: category.category,
                     categoryLabel: category.label,
-                    groupLabel: null,
+                    groupLabel: null
                 })
             }
         }
@@ -58,14 +58,14 @@ function stripFrontmatter(raw) {
 // 提取纯文本（去掉 markdown 语法）
 function stripMarkdown(md) {
     return md
-        .replace(/```[\s\S]*?```/g, '')       // 代码块
-        .replace(/`[^`]+`/g, '')               // 行内代码
-        .replace(/#{1,6}\s*/g, '')             // 标题
+        .replace(/```[\s\S]*?```/g, '') // 代码块
+        .replace(/`[^`]+`/g, '') // 行内代码
+        .replace(/#{1,6}\s*/g, '') // 标题
         .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // 链接
-        .replace(/[*_~]+/g, '')                // 加粗/斜体/删除线
-        .replace(/>\s*/g, '')                  // 引用
-        .replace(/[-*+]\s/g, '')               // 列表标记
-        .replace(/\n{2,}/g, '\n')              // 多余空行
+        .replace(/[*_~]+/g, '') // 加粗/斜体/删除线
+        .replace(/>\s*/g, '') // 引用
+        .replace(/[-*+]\s/g, '') // 列表标记
+        .replace(/\n{2,}/g, '\n') // 多余空行
         .trim()
 }
 
@@ -75,7 +75,7 @@ async function buildIndex() {
     const entries = []
 
     // 并行加载所有文件
-    const loadPromises = metaList.map(async (meta) => {
+    const loadPromises = metaList.map(async meta => {
         const path = resolveDocPath(meta.category, meta.slug)
         const loader = allDocFiles[path]
         if (!loader) return null
@@ -97,12 +97,12 @@ async function buildIndex() {
             { name: 'title', weight: 0.4 },
             { name: 'sidebar_label', weight: 0.3 },
             { name: 'content', weight: 0.2 },
-            { name: 'groupLabel', weight: 0.1 },
+            { name: 'groupLabel', weight: 0.1 }
         ],
         threshold: 0.35,
         includeMatches: true,
         minMatchCharLength: 1,
-        ignoreLocation: true,
+        ignoreLocation: true
     })
 
     indexReady = true
@@ -126,29 +126,36 @@ export async function search(query) {
         category: item.category,
         categoryLabel: item.categoryLabel,
         groupLabel: item.groupLabel,
-        // 截取匹配附近的内容片段作为摘要
+        // 截取匹配附近的内容片段作为摘要，含高亮位置
         snippet: buildSnippet(item.content, matches),
-        matches,
     }))
 }
 
-// 从匹配位置生成摘要
+// 从匹配位置生成摘要，返回 { text, highlights }
 function buildSnippet(content, matches) {
     const contentMatch = matches?.find(m => m.key === 'content')
     if (!contentMatch || !contentMatch.indices.length) {
-        return content.substring(0, 120)
+        return { text: content.substring(0, 120), highlights: [] }
     }
 
-    // 取第一个匹配位置，前后各扩展40字符
-    const [start] = contentMatch.indices[0]
-    const sliceStart = Math.max(0, start - 40)
-    const sliceEnd = Math.min(content.length, start + 80)
-    let snippet = content.slice(sliceStart, sliceEnd)
+    // 取第一个匹配位置，前后各扩展
+    const [matchStart, matchEnd] = contentMatch.indices[0]
+    const sliceStart = Math.max(0, matchStart - 20)
+    const sliceEnd = Math.min(content.length, matchEnd + 60)
+    let text = content.slice(sliceStart, sliceEnd)
 
-    if (sliceStart > 0) snippet = '...' + snippet
-    if (sliceEnd < content.length) snippet += '...'
+    const prefix = sliceStart > 0 ? '...' : ''
+    const suffix = sliceEnd < content.length ? '...' : ''
+    text = prefix + text + suffix
 
-    return snippet
+    // 将匹配位置转换为相对于摘要的坐标
+    const offset = sliceStart - prefix.length
+    const highlights = contentMatch.indices
+        .map(([s, e]) => [s - offset, e - offset])
+        .filter(([s, e]) => s < text.length && e >= 0)
+        .map(([s, e]) => [Math.max(0, s), Math.min(text.length, e + 1)])
+
+    return { text, highlights }
 }
 
 // 预热索引（可选，进入页面后提前构建）
