@@ -6,7 +6,8 @@ import SearchTrigger from '../Search/SearchTrigger'
 const navLinks = [
     { to: '/', label: '首页' },
     { to: '/docs/tutorials/hello-world', label: '开发教程', matchPrefix: '/docs/tutorials' },
-    { to: '/docs/api/quickstart/digital-twin-api', label: 'API 文档', matchPrefix: '/docs/api' }
+    { to: '/docs/api/quickstart/digital-twin-api', label: 'API 文档', matchPrefix: '/docs/api' },
+    { to: '/playground', label: '在线调试', matchPrefix: '/playground' }
 ]
 
 export default function Header() {

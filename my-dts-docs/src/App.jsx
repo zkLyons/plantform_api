@@ -1,10 +1,11 @@
 import React from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Layout/Header'
 import Sidebar from './components/Layout/Sidebar'
 import Footer from './components/Layout/Footer'
 import Home from './pages/Home'
 import DocPage from './pages/DocPage'
+import PlaygroundPage from './pages/PlaygroundPage'
 
 function DocLayout() {
     return (
@@ -19,6 +20,13 @@ function DocLayout() {
 }
 
 export default function App() {
+    const location = useLocation()
+    const isPlayground = location.pathname === '/playground'
+
+    if (isPlayground) {
+        return <PlaygroundPage />
+    }
+
     return (
         <div className="min-h-screen bg-base text-[#2d2926]">
             <Header />
