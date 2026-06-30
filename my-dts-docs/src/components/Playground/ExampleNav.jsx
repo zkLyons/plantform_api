@@ -1,5 +1,28 @@
 import React, { useRef } from 'react'
 
+// 分类名称 → 文档首页路径
+const CAT_DOC_MAP = {
+    '核心对象': '/docs/api/quickstart/digital-twin-api',
+    '相机操作': '/docs/api/camera/camera',
+    '图层操作': '/docs/api/layer/tile-layer',
+    '绘制助手': '/docs/api/measure/edit-helper',
+    '测量分析': '/docs/api/analysis/tools',
+    '环境天气': '/docs/api/weather/weather',
+    '系统设置': '/docs/api/settings/settings',
+    '辅助工具': '/docs/api/utils/coord',
+    '模型操作': '/docs/api/model/custom-mesh',
+    '场景标记': '/docs/api/marker/marker',
+    '矢量图形': '/docs/api/vector/polyline',
+    '覆盖物': '/docs/api/overlay/heatmap',
+    '海洋仿真': '/docs/api/ocean/ocean-heatmap',
+    '水文仿真': '/docs/api/hydro/dynamic-water',
+    '信号仿真': '/docs/api/signal/antenna',
+    '交通仿真': '/docs/api/traffic/vehicle',
+    '有限元仿真': '/docs/api/fem/finite-element',
+    '战场仿真': '/docs/api/battle/plot',
+    '压力测试': '/docs/api/quickstart/digital-twin-api',
+}
+
 export default function ExampleNav({
     sidebarOpen, coordSel, setCoordSel, searchQuery, setSearchQuery,
     filteredCategories, openCats, setOpenCats, openItems, setOpenItems,
@@ -25,6 +48,7 @@ export default function ExampleNav({
             <nav className="sb-nav" ref={navRef}>
                 {filteredCategories.map(cat => {
                     const catOpen = q ? true : !!openCats[cat.id]
+                    const docPath = CAT_DOC_MAP[cat.label]
                     return (
                         <div key={cat.id}>
                             <div className="sb-cat-hdr" onClick={() => setOpenCats(s => ({ ...s, [cat.id]: !catOpen }))}>
@@ -33,27 +57,36 @@ export default function ExampleNav({
                                 <span className="sb-cat-count">{cat.items.length}</span>
                                 <span className={'sb-cat-arrow' + (catOpen ? ' open' : '')}>▶</span>
                             </div>
-                            {catOpen && cat.items.map(it => {
-                                const itemOpen = q ? true : !!openItems[it.id]
-                                return (
-                                    <div key={it.id} id={'nav-item-' + it.id}>
-                                        <div className={'sb-class' + (itemOpen ? ' open' : '')} onClick={() => setOpenItems(s => ({ ...s, [it.id]: !itemOpen }))}>
-                                            <div className="sb-class-name">
-                                                {it.className} <span style={{ opacity: 0.6 }}>· {it.name}</span>
-                                            </div>
-                                            {it.desc ? <div className="sb-class-desc">{it.desc}</div> : null}
+                            {catOpen && (
+                                <>
+                                    {docPath && (
+                                        <div className="sb-api-help" onClick={() => window.open(docPath, '_blank')} title={'查看 ' + cat.label + ' API 文档'}>
+                                            📖 API 帮助
                                         </div>
-                                        {itemOpen && it.methods.map((m, mi) => {
-                                            const key = it.id + '::' + mi
-                                            return (
-                                                <div key={key} className={'sb-method' + (activeMethod === key ? ' active' : '')} onClick={() => loadMethod(it, m, key)} title={m.tip || (notExecute ? '填入编辑器（不执行）' : '填入编辑器并执行')}>
-                                                    {m.name}
+                                    )}
+                                    {cat.items.map(it => {
+                                        const itemOpen = q ? true : !!openItems[it.id]
+                                        return (
+                                            <div key={it.id} id={'nav-item-' + it.id}>
+                                                <div className={'sb-class' + (itemOpen ? ' open' : '')} onClick={() => setOpenItems(s => ({ ...s, [it.id]: !itemOpen }))}>
+                                                    <div className="sb-class-name">
+                                                        {it.className} <span style={{ opacity: 0.6 }}>· {it.name}</span>
+                                                    </div>
+                                                    {it.desc ? <div className="sb-class-desc">{it.desc}</div> : null}
                                                 </div>
-                                            )
-                                        })}
-                                    </div>
-                                )
-                            })}
+                                                {itemOpen && it.methods.map((m, mi) => {
+                                                    const key = it.id + '::' + mi
+                                                    return (
+                                                        <div key={key} className={'sb-method' + (activeMethod === key ? ' active' : '')} onClick={() => loadMethod(it, m, key)} title={m.tip || (notExecute ? '填入编辑器（不执行）' : '填入编辑器并执行')}>
+                                                            {m.name}
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        )
+                                    })}
+                                </>
+                            )}
                         </div>
                     )
                 })}

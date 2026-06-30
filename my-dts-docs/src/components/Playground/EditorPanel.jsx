@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { javascript, javascriptLanguage } from '@codemirror/lang-javascript'
 import { oneDark } from '@codemirror/theme-one-dark'
+import { EditorView } from '@codemirror/view'
 import { API_COMPLETIONS } from '../../data/sandbox/api-completions'
 
 // fdapi / api 智能补全
@@ -64,7 +65,7 @@ const EditorPanel = forwardRef(function EditorPanel({
                         value={code}
                         height="100%"
                         theme={oneDark}
-                        extensions={[javascript(), fdapiCompletionExt]}
+                        extensions={[javascript(), fdapiCompletionExt, EditorView.lineWrapping]}
                         onChange={val => setCode(val)}
                         className="sb-cm-editor"
                     />
