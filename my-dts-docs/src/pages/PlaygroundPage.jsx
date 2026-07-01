@@ -79,9 +79,7 @@ export default function PlaygroundPage() {
 
     // ── 示例库懒加载 ──
     useEffect(() => {
-        import('../data/sandbox/real-examples')
-            .then(mod => setExamplesData({ pcs: mod.SANDBOX_CATEGORIES || [], gcs: mod.SANDBOX_CATEGORIES_GCS || [] }))
-            .catch(() => {})
+        import('../data/sandbox/real-examples').then(mod => setExamplesData({ pcs: mod.SANDBOX_CATEGORIES || [], gcs: mod.SANDBOX_CATEGORIES_GCS || [] })).catch(() => {})
     }, [])
 
     // ── 面板拖拽 ──
@@ -104,7 +102,9 @@ export default function PlaygroundPage() {
             let ratio = (startPlayerW + (e.clientX - startX)) / total
             ratio = Math.max(0.2, Math.min(0.8, ratio))
             setPlayerRatio(ratio)
-            try { localStorage.setItem('sb-player-ratio', String(ratio)) } catch {}
+            try {
+                localStorage.setItem('sb-player-ratio', String(ratio))
+            } catch {}
         }
         const onUp = () => {
             if (!dragRef.current) return
@@ -115,7 +115,10 @@ export default function PlaygroundPage() {
         }
         window.addEventListener('mousemove', onMove)
         window.addEventListener('mouseup', onUp)
-        return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+        return () => {
+            window.removeEventListener('mousemove', onMove)
+            window.removeEventListener('mouseup', onUp)
+        }
     }, [])
 
     // ── 水平拖拽（编辑器/日志高度分配） ──
@@ -142,11 +145,16 @@ export default function PlaygroundPage() {
             setIsDraggingH(false)
             document.body.style.cursor = ''
             document.body.style.userSelect = ''
-            try { localStorage.setItem('CodeMirrorHeight', String(editorHeight)) } catch {}
+            try {
+                localStorage.setItem('CodeMirrorHeight', String(editorHeight))
+            } catch {}
         }
         window.addEventListener('mousemove', onMove)
         window.addEventListener('mouseup', onUp)
-        return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+        return () => {
+            window.removeEventListener('mousemove', onMove)
+            window.removeEventListener('mouseup', onUp)
+        }
     }, [editorHeight])
 
     // ── SDK 加载 + 连接 ──
@@ -163,8 +171,12 @@ export default function PlaygroundPage() {
                 if (pendingAutoRunRef.current && !flagsRef.current.notExecute) {
                     pendingAutoRunRef.current = false
                     setTimeout(() => {
-                        try { window.eval('(async ()=>{' + codeRef.current + '})()'); writeLog('▶ 已自动执行文档示例代码', false, 'green') }
-                        catch (err) { writeLog(err.message, false, 'red') }
+                        try {
+                            window.eval('(async ()=>{' + codeRef.current + '})()')
+                            writeLog('▶ 已自动执行文档示例代码', false, 'green')
+                        } catch (err) {
+                            writeLog(err.message, false, 'red')
+                        }
                     }, 300)
                 }
             },
@@ -182,7 +194,10 @@ export default function PlaygroundPage() {
             onEvent: e => writeLog('OnEvent: ' + escapeHtml(e.eventtype)),
             onLog: (msg, noLineBreak, color) => writeLog(escapeHtml(msg), noLineBreak, color),
             _onFps: fps => setFps(fps),
-            _onVersion: v => { setVersionHtml(v2 => v2 || v); setServerVersion(v2 => v2 || v) }
+            _onVersion: v => {
+                setVersionHtml(v2 => v2 || v)
+                setServerVersion(v2 => v2 || v)
+            }
         }
 
         ;(async () => {
@@ -200,7 +215,10 @@ export default function PlaygroundPage() {
             if (!disposed) initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp, setPort })
         })()
 
-        return () => { disposed = true; destroySdk() }
+        return () => {
+            disposed = true
+            destroySdk()
+        }
     }, [isCloud]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── 恢复 localStorage 状态 ──
@@ -231,9 +249,16 @@ export default function PlaygroundPage() {
                 setCode(pending)
                 if (!flagsRef.current.notExecute) {
                     pendingAutoRunRef.current = true
-                    if (window.fdapi) { pendingAutoRunRef.current = false; setTimeout(() => doExecCode(), 200); writeLog('📄 已载入文档示例代码，正在自动执行…', false, 'green') }
-                    else { writeLog('📄 已载入文档示例代码，连接就绪后将自动执行', false, 'green') }
-                } else { writeLog('📄 已载入文档示例代码，点击「执行JS」运行', false, 'green') }
+                    if (window.fdapi) {
+                        pendingAutoRunRef.current = false
+                        setTimeout(() => doExecCode(), 200)
+                        writeLog('📄 已载入文档示例代码，正在自动执行…', false, 'green')
+                    } else {
+                        writeLog('📄 已载入文档示例代码，连接就绪后将自动执行', false, 'green')
+                    }
+                } else {
+                    writeLog('📄 已载入文档示例代码，点击「执行JS」运行', false, 'green')
+                }
                 return
             }
             const saved = localStorage.getItem('SbSavedCode')
@@ -243,7 +268,11 @@ export default function PlaygroundPage() {
 
     // ── 代码自动保存 ──
     useEffect(() => {
-        const t = setTimeout(() => { try { localStorage.setItem('SbSavedCode', code) } catch {} }, 500)
+        const t = setTimeout(() => {
+            try {
+                localStorage.setItem('SbSavedCode', code)
+            } catch {}
+        }, 500)
         return () => clearTimeout(t)
     }, [code])
 
@@ -251,68 +280,140 @@ export default function PlaygroundPage() {
     const shareCode = useCallback(() => {
         try {
             const bytes = new TextEncoder().encode(codeRef.current)
-            const b64 = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_')
+            const b64 = btoa(String.fromCharCode(...bytes))
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
             const url = location.origin + location.pathname + '#code=' + b64
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(url).then(
                     () => writeLog('🔗 分享链接已复制到剪贴板（' + url.length + ' 字符）', false, 'green'),
                     () => writeLog('复制失败，链接：' + url, false, 'orange')
                 )
-            } else { window.prompt('复制分享链接：', url) }
-        } catch (e) { writeLog('生成分享链接失败: ' + e.message, false, 'red') }
+            } else {
+                window.prompt('复制分享链接：', url)
+            }
+        } catch (e) {
+            writeLog('生成分享链接失败: ' + e.message, false, 'red')
+        }
     }, [writeLog])
 
     // ── 折叠日志区 ──
     const toggleConsole = () => {
-        setConsoleCollapsed(c => { const next = !c; try { localStorage.setItem('SbConsoleCollapsed', next ? '1' : '0') } catch {}; return next })
+        setConsoleCollapsed(c => {
+            const next = !c
+            try {
+                localStorage.setItem('SbConsoleCollapsed', next ? '1' : '0')
+            } catch {}
+            return next
+        })
     }
 
     // ── 禁止 Ctrl+滚轮缩放 ──
     useEffect(() => {
-        const onWheel = e => { if (e.ctrlKey) e.preventDefault() }
-        const onKey = e => { if ((e.ctrlKey || e.metaKey) && [61, 107, 173, 109, 187, 189].indexOf(e.keyCode) !== -1) e.preventDefault() }
+        const onWheel = e => {
+            if (e.ctrlKey) e.preventDefault()
+        }
+        const onKey = e => {
+            if ((e.ctrlKey || e.metaKey) && [61, 107, 173, 109, 187, 189].indexOf(e.keyCode) !== -1) e.preventDefault()
+        }
         document.addEventListener('wheel', onWheel, { passive: false })
         document.addEventListener('keydown', onKey)
-        return () => { document.removeEventListener('wheel', onWheel); document.removeEventListener('keydown', onKey) }
+        return () => {
+            document.removeEventListener('wheel', onWheel)
+            document.removeEventListener('keydown', onKey)
+        }
     }, [])
 
     // ── 执行 JS ──
     const doExecCode = useCallback(() => {
-        if (!window.fdapi) { writeLog('⚠️ fdapi 未就绪，请先连接服务', false, 'red'); return }
-        try { window.eval('(async ()=>{' + codeRef.current + '})()') }
-        catch (e) { writeLog(e.message, false, 'red'); writeLog(e.stack, false, 'red') }
+        if (!window.fdapi) {
+            writeLog('⚠️ fdapi 未就绪，请先连接服务', false, 'red')
+            return
+        }
+        try {
+            window.eval('(async ()=>{' + codeRef.current + '})()')
+        } catch (e) {
+            writeLog(e.message, false, 'red')
+            writeLog(e.stack, false, 'red')
+        }
     }, [writeLog])
 
     // ── 参数面板调节 ──
     const tweakTimerRef = useRef(null)
-    const onPanelTweak = useCallback(newCode => {
-        setCode(newCode)
-        if (flagsRef.current.notExecute || !window.fdapi) return
-        clearTimeout(tweakTimerRef.current)
-        tweakTimerRef.current = setTimeout(() => { try { window.eval('(async ()=>{' + newCode + '})()') } catch (e) { writeLog(e.message, false, 'red') } }, 250)
-    }, [writeLog])
+    const onPanelTweak = useCallback(
+        newCode => {
+            setCode(newCode)
+            if (flagsRef.current.notExecute || !window.fdapi) return
+            clearTimeout(tweakTimerRef.current)
+            tweakTimerRef.current = setTimeout(() => {
+                try {
+                    window.eval('(async ()=>{' + newCode + '})()')
+                } catch (e) {
+                    writeLog(e.message, false, 'red')
+                }
+            }, 250)
+        },
+        [writeLog]
+    )
 
     // ── 执行 JSON ──
-    const execJson = useCallback(jsonText => {
-        try { const o = JSON.parse(jsonText); if (!o) { writeLog('JSON解析错误', false, 'red'); return }; window.fdapi.call(o) }
-        catch (e) { writeLog(e.message, false, 'red'); writeLog(e.stack, false, 'red') }
-    }, [writeLog])
+    const execJson = useCallback(
+        jsonText => {
+            try {
+                const o = JSON.parse(jsonText)
+                if (!o) {
+                    writeLog('JSON解析错误', false, 'red')
+                    return
+                }
+                window.fdapi.call(o)
+            } catch (e) {
+                writeLog(e.message, false, 'red')
+                writeLog(e.stack, false, 'red')
+            }
+        },
+        [writeLog]
+    )
 
     const doSendJson = useCallback(() => {
-        if (!window.fdapi) { writeLog('⚠️ fdapi 未就绪', false, 'red'); return }
+        if (!window.fdapi) {
+            writeLog('⚠️ fdapi 未就绪', false, 'red')
+            return
+        }
         const text = codeRef.current
         const cmdArr = matchCmdLog(text)
         if (cmdArr && cmdArr.length > 0) {
-            const timestamps = cmdArr.map(cmd => { try { return JSON.parse(cmd).timestamp } catch { return 0 } })
+            const timestamps = cmdArr.map(cmd => {
+                try {
+                    return JSON.parse(cmd).timestamp
+                } catch {
+                    return 0
+                }
+            })
             const diffs = calcTimeDiffs(timestamps)
             writeLog('▶ 日志回放：共 ' + cmdArr.length + ' 条命令', false, 'green')
-            ;(async () => { for (let i = 0; i < cmdArr.length; i++) { try { window.fdapi.call(JSON.parse(cmdArr[i])) } catch (e) { writeLog(e.message, false, 'red') }; await sleep(diffs[i]) } })()
-        } else { execJson(text) }
+            ;(async () => {
+                for (let i = 0; i < cmdArr.length; i++) {
+                    try {
+                        window.fdapi.call(JSON.parse(cmdArr[i]))
+                    } catch (e) {
+                        writeLog(e.message, false, 'red')
+                    }
+                    await sleep(diffs[i])
+                }
+            })()
+        } else {
+            execJson(text)
+        }
     }, [writeLog, execJson])
 
     // ── Ctrl+Enter ──
     useEffect(() => {
-        const handler = e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); doExecCode() } }
+        const handler = e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault()
+                doExecCode()
+            }
+        }
         window.addEventListener('keydown', handler)
         return () => window.removeEventListener('keydown', handler)
     }, [doExecCode])
@@ -320,10 +421,23 @@ export default function PlaygroundPage() {
     // ── 连接服务器 ──
     const IP_RE = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
     const connectServer = () => {
-        if (!IP_RE.test(ip) || !/^\+?[1-9][0-9]*$/.test(port)) { writeLog('IP或端口格式不正确！', false, 'red'); return }
-        if (!window.fdapi) { writeLog('⚠️ SDK 未加载', false, 'red'); return }
-        try { window.fdapi.destroy(); window.fdapi.setHost(ip, port); window.fdapi.connectWebSocket(); setStatus('connecting'); writeLog('🔌 重新连接 ' + ip + ':' + port + ' ...') }
-        catch (e) { writeLog(e.message, false, 'red') }
+        if (!IP_RE.test(ip) || !/^\+?[1-9][0-9]*$/.test(port)) {
+            writeLog('IP或端口格式不正确！', false, 'red')
+            return
+        }
+        if (!window.fdapi) {
+            writeLog('⚠️ SDK 未加载', false, 'red')
+            return
+        }
+        try {
+            window.fdapi.destroy()
+            window.fdapi.setHost(ip, port)
+            window.fdapi.connectWebSocket()
+            setStatus('connecting')
+            writeLog('🔌 重新连接 ' + ip + ':' + port + ' ...')
+        } catch (e) {
+            writeLog(e.message, false, 'red')
+        }
     }
 
     // ── 选择示例 ──
@@ -331,8 +445,15 @@ export default function PlaygroundPage() {
         setActiveMethod(key)
         setCode(m.code)
         if (!flagsRef.current.notExecute) {
-            if (!window.fdapi) { writeLog('⚠️ fdapi 未就绪，代码已填入编辑器但未执行', false, 'orange'); return }
-            try { window.eval('(async ()=>{' + m.code + '})()') } catch (e) { writeLog(e.message, false, 'red') }
+            if (!window.fdapi) {
+                writeLog('⚠️ fdapi 未就绪，代码已填入编辑器但未执行', false, 'orange')
+                return
+            }
+            try {
+                window.eval('(async ()=>{' + m.code + '})()')
+            } catch (e) {
+                writeLog(e.message, false, 'red')
+            }
         }
     }
 
@@ -340,53 +461,48 @@ export default function PlaygroundPage() {
     const navTree = coordSel === '1' ? examplesData.gcs : examplesData.pcs
     const q = searchQuery.trim().toLowerCase()
     const filteredCategories = navTree
-        .map(cat => ({ ...cat, items: cat.items.map(it => {
-            if (!q) return it
-            const hitItem = it.name.toLowerCase().includes(q) || it.className.toLowerCase().includes(q) || (it.desc || '').toLowerCase().includes(q)
-            return { ...it, methods: hitItem ? it.methods : it.methods.filter(m => m.name.toLowerCase().includes(q) || (m.tip || '').toLowerCase().includes(q)) }
-        }).filter(it => it.methods.length > 0) }))
+        .map(cat => ({
+            ...cat,
+            items: cat.items
+                .map(it => {
+                    if (!q) return it
+                    const hitItem = it.name.toLowerCase().includes(q) || it.className.toLowerCase().includes(q) || (it.desc || '').toLowerCase().includes(q)
+                    return { ...it, methods: hitItem ? it.methods : it.methods.filter(m => m.name.toLowerCase().includes(q) || (m.tip || '').toLowerCase().includes(q)) }
+                })
+                .filter(it => it.methods.length > 0)
+        }))
         .filter(cat => cat.items.length > 0)
 
     return (
         <div>
             <div className="sb-wrap">
-                <ConnectionBar
-                    status={status} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen}
-                    isCloud={isCloud} setIsCloud={setIsCloud} ip={ip} setIp={setIp} port={port} setPort={setPort}
-                    connectServer={connectServer} versionHtml={versionHtml} coordType={coordType} baseUrl={baseUrl}
-                />
+                <ConnectionBar status={status} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} isCloud={isCloud} setIsCloud={setIsCloud} ip={ip} setIp={setIp} port={port} setPort={setPort} connectServer={connectServer} versionHtml={versionHtml} coordType={coordType} baseUrl={baseUrl} />
 
                 <div className="sb-main">
-                    <ExampleNav
-                        sidebarOpen={sidebarOpen} coordSel={coordSel} setCoordSel={setCoordSel}
-                        searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-                        filteredCategories={filteredCategories} openCats={openCats} setOpenCats={setOpenCats}
-                        openItems={openItems} setOpenItems={setOpenItems} activeMethod={activeMethod}
-                        loadMethod={loadMethod} serverVersion={serverVersion} notExecute={notExecute}
-                    />
+                    <ExampleNav sidebarOpen={sidebarOpen} coordSel={coordSel} setCoordSel={setCoordSel} searchQuery={searchQuery} setSearchQuery={setSearchQuery} filteredCategories={filteredCategories} openCats={openCats} setOpenCats={setOpenCats} openItems={openItems} setOpenItems={setOpenItems} activeMethod={activeMethod} loadMethod={loadMethod} serverVersion={serverVersion} notExecute={notExecute} />
 
                     <PlayerPanel
-                        ref={playerPanelRef} rightTab={rightTab} setRightTab={setRightTab}
-                        isCloud={isCloud} status={status} fps={fps} code={code}
-                        onPanelTweak={onPanelTweak} onInsertCode={code => { setCode(code); setRightTab('player') }}
+                        ref={playerPanelRef}
+                        rightTab={rightTab}
+                        setRightTab={setRightTab}
+                        isCloud={isCloud}
+                        status={status}
+                        fps={fps}
+                        code={code}
+                        onPanelTweak={onPanelTweak}
+                        onInsertCode={code => {
+                            setCode(code)
+                            setRightTab('player')
+                        }}
                         playerRatio={playerRatio}
                     />
 
                     <div className={'sb-panel-divider' + (isDragging ? ' active' : '')} onMouseDown={onDividerMouseDown} title="拖拽调整面板宽度" />
 
                     <div ref={codePanelRef} style={{ flexGrow: 1 - playerRatio, flexShrink: 1, flexBasis: 0, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden', minWidth: 0 }}>
-                        <EditorPanel
-                            ref={editorPanelRef}
-                            code={code} setCode={setCode} editorHeight={editorHeight} consoleCollapsed={consoleCollapsed}
-                            notExecute={notExecute} setNotExecute={setNotExecute} doExecCode={doExecCode}
-                            doSendJson={doSendJson} shareCode={shareCode}
-                        />
+                        <EditorPanel ref={editorPanelRef} code={code} setCode={setCode} editorHeight={editorHeight} consoleCollapsed={consoleCollapsed} notExecute={notExecute} setNotExecute={setNotExecute} doExecCode={doExecCode} doSendJson={doSendJson} shareCode={shareCode} />
                         <div className={'sb-h-divider' + (isDraggingH ? ' active' : '')} onMouseDown={onHDividerMouseDown} title="拖拽调整编辑器/日志高度" />
-                        <ConsolePanel
-                            ref={infoPanelRef} consoleCollapsed={consoleCollapsed} toggleConsole={toggleConsole}
-                            autoClear={autoClear} setAutoClear={setAutoClear} logEnabled={logEnabled}
-                            setLogEnabled={setLogEnabled} clearScreen={clearScreen}
-                        />
+                        <ConsolePanel ref={infoPanelRef} consoleCollapsed={consoleCollapsed} toggleConsole={toggleConsole} autoClear={autoClear} setAutoClear={setAutoClear} logEnabled={logEnabled} setLogEnabled={setLogEnabled} clearScreen={clearScreen} />
                     </div>
                 </div>
             </div>

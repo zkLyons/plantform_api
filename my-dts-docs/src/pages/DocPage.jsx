@@ -50,7 +50,7 @@ export default function DocPage() {
                         components={{
                             a({ href, children, ...props }) {
                                 // Anchor link — same page scroll
-                                console.log('href:', href, 'children', children, 'props', props, '------+++++*******')
+                                // console.log('href:', href, 'children', children, 'props', props, '------+++++*******')
 
                                 if (href && href.startsWith('#')) {
                                     return (
@@ -91,10 +91,12 @@ export default function DocPage() {
                                 if (isBlock) {
                                     return (
                                         <div style={{ position: 'relative' }}>
-                                            <code className={className} {...props}>{children}</code>
+                                            <code className={className} {...props}>
+                                                {children}
+                                            </code>
                                             <button
                                                 onClick={() => {
-                                                    const extractText = (node) => {
+                                                    const extractText = node => {
                                                         if (typeof node === 'string' || typeof node === 'number') return String(node)
                                                         if (Array.isArray(node)) return node.map(extractText).join('')
                                                         if (node?.props?.children) return extractText(node.props.children)
@@ -102,7 +104,8 @@ export default function DocPage() {
                                                     }
                                                     const code = extractText(children).replace(/\n$/, '')
                                                     const b64 = btoa(unescape(encodeURIComponent(code)))
-                                                        .replace(/\+/g, '-').replace(/\//g, '_')
+                                                        .replace(/\+/g, '-')
+                                                        .replace(/\//g, '_')
                                                     window.open('/playground#code=' + b64, '_blank')
                                                 }}
                                                 style={{

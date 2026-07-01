@@ -33,7 +33,10 @@ export async function loadSdk(baseUrl, writeLog) {
     if (!window.__dtsSdkLoaded) {
         try {
             await loadScript(baseUrl + 'ac_conf.js')
-        } catch { /* ac_conf.js 可选 */ }
+        } catch {
+            /* ac_conf.js 可选 */
+        }
+        // player:视频流推送路径， api:WebSocket API 服务路径，path:资源文件路径
         if (!window.HostConfig) {
             window.HostConfig = { API: '127.0.0.1:4321', Player: '127.0.0.1:8889', Path: '' }
             writeLog('⚠️ 未找到 ac_conf.js，使用默认 HostConfig: ' + JSON.stringify(window.HostConfig), false, 'orange')
@@ -45,8 +48,12 @@ export async function loadSdk(baseUrl, writeLog) {
 
 // 销毁 SDK 实例
 export function destroySdk() {
-    try { window.fdplayer && window.fdplayer.destroy && window.fdplayer.destroy() } catch {}
-    try { window.fdapi && window.fdapi.destroy && window.fdapi.destroy() } catch {}
+    try {
+        window.fdplayer && window.fdplayer.destroy && window.fdplayer.destroy()
+    } catch {}
+    try {
+        window.fdapi && window.fdapi.destroy && window.fdapi.destroy()
+    } catch {}
     window.fdplayer = undefined
     window.fdapi = undefined
     const p = document.getElementById('player')
@@ -58,6 +65,7 @@ export function initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp
     const HostConfig = window.HostConfig
     const urlParams = new URLSearchParams(window.location.search)
     setStatus('connecting')
+    console.log(window.HostConfig, 'HostConfig')
 
     if (isCloud && typeof window.DigitalTwinPlayer === 'function') {
         const options = {
