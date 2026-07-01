@@ -87,6 +87,43 @@ export default function DocPage() {
                                 )
                             },
                             code({ className, children, ...props }) {
+                                const isBlock = className && /language-/.test(className)
+                                if (isBlock) {
+                                    return (
+                                        <div style={{ position: 'relative' }}>
+                                            <code className={className} {...props}>{children}</code>
+                                            <button
+                                                onClick={() => {
+                                                    const extractText = (node) => {
+                                                        if (typeof node === 'string' || typeof node === 'number') return String(node)
+                                                        if (Array.isArray(node)) return node.map(extractText).join('')
+                                                        if (node?.props?.children) return extractText(node.props.children)
+                                                        return ''
+                                                    }
+                                                    const code = extractText(children).replace(/\n$/, '')
+                                                    const b64 = btoa(unescape(encodeURIComponent(code)))
+                                                        .replace(/\+/g, '-').replace(/\//g, '_')
+                                                    window.open('/playground#code=' + b64, '_blank')
+                                                }}
+                                                style={{
+                                                    display: 'block',
+                                                    marginTop: '6px',
+                                                    padding: '4px 12px',
+                                                    background: 'rgba(196,93,44,0.1)',
+                                                    border: '1px solid rgba(196,93,44,0.3)',
+                                                    borderRadius: '6px',
+                                                    color: '#c45d2c',
+                                                    fontSize: '0.75rem',
+                                                    cursor: 'pointer',
+                                                    fontFamily: 'inherit',
+                                                    fontWeight: 600
+                                                }}
+                                            >
+                                                ▶ 试一试
+                                            </button>
+                                        </div>
+                                    )
+                                }
                                 return (
                                     <code className={className} {...props}>
                                         {children}
