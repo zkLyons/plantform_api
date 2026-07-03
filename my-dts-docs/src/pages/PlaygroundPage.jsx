@@ -46,16 +46,23 @@ export default function PlaygroundPage() {
     const [isDraggingH, setIsDraggingH] = useState(false)
 
     // ── Refs ──
+    // 日志面板dom实例
     const infoPanelRef = useRef(null)
+    // 记录当前已打印的日志条数
     const logTimesRef = useRef(0)
+    // 始终持有最新的编辑器代码字符串
     const codeRef = useRef(code)
     codeRef.current = code
+    // 一个布尔标记，用于记录是否有来自文档“试一试”按钮的代码需要在连接成功后自动执行
     const pendingAutoRunRef = useRef(false)
+    // 一个“状态旗帜”的集合，把 autoClear, logEnabled, notExecute 这几个布尔 state 捆绑在一起
     const flagsRef = useRef({})
     flagsRef.current = { autoClear, logEnabled, notExecute }
+    // playerPanelRef, codePanelRef, editorPanelRef:分别引用播放器面板、右侧代码区面板、编辑器面板的 DOM 节点。
     const playerPanelRef = useRef(null)
     const codePanelRef = useRef(null)
     const editorPanelRef = useRef(null)
+    // 分别存储垂直和水平拖拽条的拖拽状态信息。
     const dragRef = useRef(null)
     const hDragRef = useRef(null)
 
@@ -63,10 +70,12 @@ export default function PlaygroundPage() {
     const writeLog = useCallback((msg, noLineBreak, color) => {
         const el = infoPanelRef.current
         if (!el || !flagsRef.current.logEnabled) return
+        // 超过 100 条日志时自动清空
         if (flagsRef.current.autoClear && ++logTimesRef.current > 100) {
             logTimesRef.current = 0
             el.innerHTML = ''
         }
+        // 日志内容中包含 HTML 标签时，直接插入 HTML，否则转义后插入文本
         const html = color ? '<font color="' + color + '">' + msg + '</font>' : String(msg)
         el.insertAdjacentHTML('beforeend', html + (noLineBreak ? '' : '\n'))
         el.scrollTop = el.scrollHeight + 100
