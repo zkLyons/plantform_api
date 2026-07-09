@@ -25,6 +25,7 @@ const CAT_DOC_MAP = {
 
 export default function ExampleNav({ sidebarOpen, coordSel, setCoordSel, searchQuery, setSearchQuery, filteredCategories, openCats, setOpenCats, openItems, setOpenItems, activeMethod, loadMethod, serverVersion, notExecute }) {
     const navRef = useRef(null)
+    // 搜索输入框的内容，去除守卫空格并转换为小写。
     const q = searchQuery.trim().toLowerCase()
 
     return (

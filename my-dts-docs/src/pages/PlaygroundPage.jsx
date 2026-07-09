@@ -53,9 +53,7 @@ export default function PlaygroundPage() {
     // 始终持有最新的编辑器代码字符串
     const codeRef = useRef(code)
     codeRef.current = code
-    // 一个布尔标记，用于记录是否有来自文档“试一试”按钮的代码需要在连接成功后自动执行
-    const pendingAutoRunRef = useRef(false)
-    // 一个“状态旗帜”的集合，把 autoClear, logEnabled, notExecute 这几个布尔 state 捆绑在一起
+    // 一个”状态旗帜”的集合，把 autoClear, logEnabled, notExecute 这几个布尔 state 捆绑在一起
     const flagsRef = useRef({})
     flagsRef.current = { autoClear, logEnabled, notExecute }
     // playerPanelRef, codePanelRef, editorPanelRef:分别引用播放器面板、右侧代码区面板、编辑器面板的 DOM 节点。
@@ -94,22 +92,28 @@ export default function PlaygroundPage() {
     // ── 面板拖拽 ──
     const onDividerMouseDown = useCallback(e => {
         e.preventDefault()
+        // .getBoundingClientRect(): 这是一个标准的浏览器 DOM API。当在一个 DOM 元素上调用它时，它会返回一个包含该元素尺寸和位置信息的对象，其中包括 width, height, top, left 等属性。
         const playerW = playerPanelRef.current?.getBoundingClientRect().width ?? 0
         const codeW = codePanelRef.current?.getBoundingClientRect().width ?? 0
         const total = playerW + codeW
         if (total <= 0) return
+        // dragRef.current: 这是一个 React 的 ref 对象，用于在组件的生命周期中保持对某个值的引用。在这里，它被用来存储拖拽操作的初始状态，包括鼠标按下时的 X 坐标、播放器面板的初始宽度以及播放器和代码面板的总宽度。
         dragRef.current = { startX: e.clientX, startPlayerW: playerW, total }
         setIsDragging(true)
         document.body.style.cursor = 'col-resize'
         document.body.style.userSelect = 'none'
     }, [])
 
+    // 该函数使用 useEffect 来设置和清理全局的鼠标移动和鼠标释放事件监听器，以实现拖拽调整播放器和代码面板宽度的功能。
+    // 第二个参数是一个空数组 []，意味着这个钩子内的代码只会在组件首次挂载（mount）时执行一次。
+    // 这段代码通过 useEffect 在组件挂载时设置了两个全局的鼠标事件监听器（mousemove 和 mouseup）。当用户在分隔条上按下鼠标（onDividerMouseDown）时，它记录下拖拽的初始状态。随后，mousemove 事件会持续计算新的面板比例并更新UI，而 mouseup 事件则会结束整个拖拽过程并清理状态。
     useEffect(() => {
         const onMove = e => {
             if (!dragRef.current) return
             const { startX, startPlayerW, total } = dragRef.current
             let ratio = (startPlayerW + (e.clientX - startX)) / total
             ratio = Math.max(0.2, Math.min(0.8, ratio))
+            // 更新 React state，触发组件重渲染，使面板的宽度（通过 flex-grow 实现）根据新的比例进行调整
             setPlayerRatio(ratio)
             try {
                 localStorage.setItem('sb-player-ratio', String(ratio))
@@ -131,6 +135,8 @@ export default function PlaygroundPage() {
     }, [])
 
     // ── 水平拖拽（编辑器/日志高度分配） ──
+    // // 使用 useCallback(..., []) 将函数包裹起来，确保它只在组件首次渲染时创建一次，
+    // 避免不必要的函数重建，是一种性能优化
     const onHDividerMouseDown = useCallback(e => {
         e.preventDefault()
         const rect = editorPanelRef.current?.getBoundingClientRect()
@@ -167,6 +173,7 @@ export default function PlaygroundPage() {
     }, [editorHeight])
 
     // ── SDK 加载 + 连接 ──
+    // 这个 useEffect 会在组件首次加载时运行一次。此外，它的依赖项是 [isCloud]，这意味着每当用户在“云渲染”和“WebSocket”模式之间切换时，这个钩子都会重新执行
     useEffect(() => {
         let disposed = false
 
@@ -177,18 +184,8 @@ export default function PlaygroundPage() {
                 setCoordType(String(coordSystemType ?? '0'))
                 setCoordSel(String(coordSystemType ?? '0'))
                 writeLog('✅ 工程已就绪，可以调用 API（坐标系类型：' + (String(coordSystemType) === '1' ? '球面' : '投影') + '）', false, 'green')
-                if (pendingAutoRunRef.current && !flagsRef.current.notExecute) {
-                    pendingAutoRunRef.current = false
-                    setTimeout(() => {
-                        try {
-                            window.eval('(async ()=>{' + codeRef.current + '})()')
-                            writeLog('▶ 已自动执行文档示例代码', false, 'green')
-                        } catch (err) {
-                            writeLog(err.message, false, 'red')
-                        }
-                    }, 300)
-                }
             },
+            // 左下角版本号显示。
             onApiVersion: () => {
                 const fdapi = window.fdapi
                 if (!fdapi || !fdapi.misc) return
@@ -210,7 +207,9 @@ export default function PlaygroundPage() {
         }
 
         ;(async () => {
+            // 1. 注入全局函数，如 log(), sleep()
             injectGlobalFunctions(writeLog, clearScreen)
+            //2. 尝试加载 SDK 核心脚本
             try {
                 await loadSdk(baseUrl, writeLog)
             } catch {
@@ -231,6 +230,7 @@ export default function PlaygroundPage() {
     }, [isCloud]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // ── 恢复 localStorage 状态 ──
+    // 它的核心作用是在页面加载时，从浏览器的 localStorage 中读取并恢复用户上一次的布局设置，以提供一种持久化的、个性化的用户体验。
     useEffect(() => {
         try {
             const h = parseInt(localStorage.getItem('CodeMirrorHeight'), 10)
@@ -241,9 +241,10 @@ export default function PlaygroundPage() {
         } catch {}
     }, [])
 
-    // ── 代码恢复：分享链接 > 文档带入 > 上次保存 ──
+    // ── 代码恢复：分享链接 > 上次保存 ──
     useEffect(() => {
         try {
+            // 1. 检查 URL hash 是否包含分享的代码（文档"试一试"按钮走此路径）
             const h = location.hash
             if (h.startsWith('#code=')) {
                 const b64 = h.slice(6).replace(/-/g, '+').replace(/_/g, '/')
@@ -252,24 +253,8 @@ export default function PlaygroundPage() {
                 writeLog('🔗 已载入分享链接中的代码', false, 'green')
                 return
             }
-            const pending = localStorage.getItem('SbPendingCode')
-            if (pending) {
-                localStorage.removeItem('SbPendingCode')
-                setCode(pending)
-                if (!flagsRef.current.notExecute) {
-                    pendingAutoRunRef.current = true
-                    if (window.fdapi) {
-                        pendingAutoRunRef.current = false
-                        setTimeout(() => doExecCode(), 200)
-                        writeLog('📄 已载入文档示例代码，正在自动执行…', false, 'green')
-                    } else {
-                        writeLog('📄 已载入文档示例代码，连接就绪后将自动执行', false, 'green')
-                    }
-                } else {
-                    writeLog('📄 已载入文档示例代码，点击「执行JS」运行', false, 'green')
-                }
-                return
-            }
+
+            // 2. 加载上一次自动保存的代码
             const saved = localStorage.getItem('SbSavedCode')
             if (saved) setCode(saved)
         } catch {}
@@ -308,6 +293,7 @@ export default function PlaygroundPage() {
 
     // ── 折叠日志区 ──
     const toggleConsole = () => {
+        // useState的函数式更新：setConsoleCollapsed(c => !c) 这种写法是 React 中 useState 的一种函数式更新方式。它的作用是根据当前的状态值 c 来计算并返回新的状态值。在这个例子中，它会将 consoleCollapsed 的布尔值取反，从而实现日志区的折叠和展开。
         setConsoleCollapsed(c => {
             const next = !c
             try {
@@ -510,7 +496,9 @@ export default function PlaygroundPage() {
 
                     <div ref={codePanelRef} style={{ flexGrow: 1 - playerRatio, flexShrink: 1, flexBasis: 0, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden', minWidth: 0 }}>
                         <EditorPanel ref={editorPanelRef} code={code} setCode={setCode} editorHeight={editorHeight} consoleCollapsed={consoleCollapsed} notExecute={notExecute} setNotExecute={setNotExecute} doExecCode={doExecCode} doSendJson={doSendJson} shareCode={shareCode} />
-                        <div className={'sb-h-divider' + (isDraggingH ? ' active' : '')} onMouseDown={onHDividerMouseDown} title="拖拽调整编辑器/日志高度" />
+
+                        {!consoleCollapsed && <div className={'sb-h-divider' + (isDraggingH ? ' active' : '')} onMouseDown={onHDividerMouseDown} title="拖拽调整编辑器/日志高度" />}
+
                         <ConsolePanel ref={infoPanelRef} consoleCollapsed={consoleCollapsed} toggleConsole={toggleConsole} autoClear={autoClear} setAutoClear={setAutoClear} logEnabled={logEnabled} setLogEnabled={setLogEnabled} clearScreen={clearScreen} />
                     </div>
                 </div>
