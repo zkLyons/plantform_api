@@ -326,6 +326,7 @@ export default function PlaygroundPage() {
             return
         }
         try {
+            // window.eval() 是一个 JavaScript 的内置函数，它的作用非常直接：接收一个字符串作为参数，并将这个字符串当作 JavaScript 代码在浏览器来执行。
             window.eval('(async ()=>{' + codeRef.current + '})()')
         } catch (e) {
             writeLog(e.message, false, 'red')
@@ -369,6 +370,7 @@ export default function PlaygroundPage() {
         [writeLog]
     )
 
+    // 代码编辑框执行json
     const doSendJson = useCallback(() => {
         if (!window.fdapi) {
             writeLog('⚠️ fdapi 未就绪', false, 'red')

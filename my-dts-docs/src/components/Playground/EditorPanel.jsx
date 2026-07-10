@@ -1,9 +1,33 @@
 import React, { forwardRef } from 'react'
 import CodeMirror from '@uiw/react-codemirror'
 import { javascript, javascriptLanguage } from '@codemirror/lang-javascript'
-import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView } from '@codemirror/view'
 import { API_COMPLETIONS } from '../../data/sandbox/api-completions'
+
+// 自定义 CodeMirror 浅色主题，以匹配项目整体风格
+const myTheme = EditorView.theme(
+    {
+        '&': {
+            color: 'var(--txt, #2d2926)',
+            backgroundColor: 'var(--panel, #ffffff)'
+        },
+        '.cm-content': {
+            caretColor: 'var(--accent, #c45d2c)'
+        },
+        '&.cm-focused .cm-cursor': {
+            borderLeftColor: 'var(--accent, #c45d2c)'
+        },
+        '&.cm-focused .cm-selectionBackground, ::selection': {
+            backgroundColor: 'rgba(196, 93, 44, 0.15)'
+        },
+        '.cm-gutters': {
+            backgroundColor: 'var(--bg, #faf9f7)',
+            color: 'var(--muted, #8a8580)',
+            border: 'none'
+        }
+    },
+    { dark: false }
+)
 
 // fdapi / api 智能补全
 // context 对象是什么？ 当 CodeMirror 编辑器需要显示自动补全列表时（例如用户输入了一个点 .），它会调用我们自定义的 fdapiCompletions 函数。
@@ -48,7 +72,7 @@ function completeRoot(context) {
         validFor: /^[\w$]*$/
     }
 }
-
+// javascriptLanguage是code mirror代码编辑器的接口
 const fdapiCompletionExt = javascriptLanguage.data.of({
     autocomplete: context => {
         // 优先匹配更精确的场景一
@@ -84,7 +108,7 @@ const EditorPanel = forwardRef(function EditorPanel({ code, setCode, editorHeigh
                     </span>
                 </div>
                 <div className="sb-editor-wrap">
-                    <CodeMirror value={code} height="100%" theme={oneDark} extensions={[javascript(), fdapiCompletionExt, EditorView.lineWrapping]} onChange={val => setCode(val)} className="sb-cm-editor" />
+                    <CodeMirror value={code} height="100%" theme={myTheme} extensions={[javascript(), fdapiCompletionExt, EditorView.lineWrapping]} onChange={val => setCode(val)} className="sb-cm-editor" />
                 </div>
             </div>
         </div>
