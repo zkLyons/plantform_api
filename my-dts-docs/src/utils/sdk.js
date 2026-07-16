@@ -28,7 +28,7 @@ export function injectGlobalFunctions(writeLog, clearScreen) {
     window.exeFunction = (fn, ms) => setTimeout(fn, ms)
 }
 
-// 加载 SDK 配置和核心库
+// 加载 SDK 配置和核心库,ceshiyuju
 export async function loadSdk(baseUrl, writeLog) {
     if (!window.__dtsSdkLoaded) {
         try {
@@ -45,7 +45,7 @@ export async function loadSdk(baseUrl, writeLog) {
         window.__dtsSdkLoaded = true
     }
 }
-
+//进行了一些修改,继续测试feat01分支
 // 销毁 SDK 实例
 export function destroySdk() {
     try {
