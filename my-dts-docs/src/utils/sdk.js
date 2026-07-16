@@ -137,3 +137,4 @@ export function initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp
     writeLog('🔌 正在连接 ' + (isCloud ? '云渲染服务（视频流）' : 'WebSocket API 服务') + ' ...')
     return true
 }
+// 有进行了一些修改,some chances
