@@ -45,7 +45,7 @@ export async function loadSdk(baseUrl, writeLog) {
         window.__dtsSdkLoaded = true
     }
 }
-//进行了一些修改
+//进行了一些修改,继续测试feat01分支
 // 销毁 SDK 实例
 export function destroySdk() {
     try {
