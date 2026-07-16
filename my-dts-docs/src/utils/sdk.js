@@ -19,7 +19,7 @@ export const matchCmdLog = text => text.match(new RegExp('{"__command.*?__player
 
 export const calcTimeDiffs = arr => arr.map((cur, i, a) => (i === 0 ? 0 : cur - a[i - 1]))
 
-// 注入全局工具函数（示例代码依赖）
+// 注入全局工具函数（示例代码依赖）,测试语句
 export function injectGlobalFunctions(writeLog, clearScreen) {
     window.log = (msg, noLineBreak, color) => writeLog(msg, noLineBreak, color)
     window.logWithColor = (color, text, noLineBreak) => writeLog(text, noLineBreak, color)
