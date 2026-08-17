@@ -355,10 +355,7 @@ export default function PlaygroundPage() {
             return
         }
         try {
-<<<<<<< HEAD
-=======
             // window.eval() 是一个 JavaScript 的内置函数，它的作用非常直接：接收一个字符串作为参数，并将这个字符串当作 JavaScript 代码在浏览器来执行。
->>>>>>> 279f21ced10f9305effdfe667588ddb20fd7b6e8
             window.eval('(async ()=>{' + codeRef.current + '})()')
         } catch (e) {
             writeLog(e.message, false, 'red')
@@ -530,13 +527,9 @@ export default function PlaygroundPage() {
 
                     <div ref={codePanelRef} style={{ flexGrow: 1 - playerRatio, flexShrink: 1, flexBasis: 0, display: 'flex', flexDirection: 'column', gap: 0, overflow: 'hidden', minWidth: 0 }}>
                         <EditorPanel ref={editorPanelRef} code={code} setCode={setCode} editorHeight={editorHeight} consoleCollapsed={consoleCollapsed} notExecute={notExecute} setNotExecute={setNotExecute} doExecCode={doExecCode} doSendJson={doSendJson} shareCode={shareCode} />
-<<<<<<< HEAD
-                        <div className={'sb-h-divider' + (isDraggingH ? ' active' : '')} onMouseDown={onHDividerMouseDown} title="拖拽调整编辑器/日志高度" />
-=======
 
                         {!consoleCollapsed && <div className={'sb-h-divider' + (isDraggingH ? ' active' : '')} onMouseDown={onHDividerMouseDown} title="拖拽调整编辑器/日志高度" />}
 
->>>>>>> 279f21ced10f9305effdfe667588ddb20fd7b6e8
                         <ConsolePanel ref={infoPanelRef} consoleCollapsed={consoleCollapsed} toggleConsole={toggleConsole} autoClear={autoClear} setAutoClear={setAutoClear} logEnabled={logEnabled} setLogEnabled={setLogEnabled} clearScreen={clearScreen} />
                     </div>
                 </div>
