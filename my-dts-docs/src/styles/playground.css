@@ -425,6 +425,10 @@
     overflow: hidden;
     min-width: 0;
 }
+.sb-center.sb-center-expand {
+    flex: 1;
+    min-height: 0;
+}
 .sb-editor-pane {
     display: flex;
     flex-direction: column;

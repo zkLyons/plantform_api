@@ -19,7 +19,7 @@ export const matchCmdLog = text => text.match(new RegExp('{"__command.*?__player
 
 export const calcTimeDiffs = arr => arr.map((cur, i, a) => (i === 0 ? 0 : cur - a[i - 1]))
 
-// 注入全局工具函数（示例代码依赖）
+// 注入全局工具函数（示例代码依赖）,测试语句
 export function injectGlobalFunctions(writeLog, clearScreen) {
     window.log = (msg, noLineBreak, color) => writeLog(msg, noLineBreak, color)
     window.logWithColor = (color, text, noLineBreak) => writeLog(text, noLineBreak, color)
@@ -28,12 +28,15 @@ export function injectGlobalFunctions(writeLog, clearScreen) {
     window.exeFunction = (fn, ms) => setTimeout(fn, ms)
 }
 
-// 加载 SDK 配置和核心库
+// 加载 SDK 配置和核心库,ceshiyuju
 export async function loadSdk(baseUrl, writeLog) {
     if (!window.__dtsSdkLoaded) {
         try {
             await loadScript(baseUrl + 'ac_conf.js')
-        } catch { /* ac_conf.js 可选 */ }
+        } catch {
+            /* ac_conf.js 可选 */
+        }
+        // player:视频流推送路径， api:WebSocket API 服务路径，path:资源文件路径
         if (!window.HostConfig) {
             window.HostConfig = { API: '127.0.0.1:4321', Player: '127.0.0.1:8889', Path: '' }
             writeLog('⚠️ 未找到 ac_conf.js，使用默认 HostConfig: ' + JSON.stringify(window.HostConfig), false, 'orange')
@@ -42,11 +45,15 @@ export async function loadSdk(baseUrl, writeLog) {
         window.__dtsSdkLoaded = true
     }
 }
-
+//进行了一些修改,继续测试feat01分支
 // 销毁 SDK 实例
 export function destroySdk() {
-    try { window.fdplayer && window.fdplayer.destroy && window.fdplayer.destroy() } catch {}
-    try { window.fdapi && window.fdapi.destroy && window.fdapi.destroy() } catch {}
+    try {
+        window.fdplayer && window.fdplayer.destroy && window.fdplayer.destroy()
+    } catch {}
+    try {
+        window.fdapi && window.fdapi.destroy && window.fdapi.destroy()
+    } catch {}
     window.fdplayer = undefined
     window.fdapi = undefined
     const p = document.getElementById('player')
@@ -58,6 +65,7 @@ export function initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp
     const HostConfig = window.HostConfig
     const urlParams = new URLSearchParams(window.location.search)
     setStatus('connecting')
+    console.log(window.HostConfig, 'HostConfig')
 
     if (isCloud && typeof window.DigitalTwinPlayer === 'function') {
         const options = {
@@ -129,3 +137,4 @@ export function initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp
     writeLog('🔌 正在连接 ' + (isCloud ? '云渲染服务（视频流）' : 'WebSocket API 服务') + ' ...')
     return true
 }
+// 有进行了一些修改,some chances

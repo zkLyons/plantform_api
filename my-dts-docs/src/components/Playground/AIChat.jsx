@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { API_COMPLETIONS } from '../../data/sandbox/api-completions'
+import { SANDBOX_CATEGORIES, SANDBOX_CATEGORIES_GCS } from '../../data/sandbox/real-examples'
 import FdApiIcon from './FdApiIcon'
 
 // DTS SDK AI 代码助手 —— 支持多 AI 提供商，浏览器直连，Key 存本地
@@ -33,23 +34,85 @@ const NS_ALIASES = {
     excavationAnalysis: ['开挖', '超挖', '欠挖', '土方']
 }
 
-// 根据用户问题匹配相关命名空间，拼出这些命名空间的真实方法签名（含简要说明）。
+// 从 real-examples.js 中查找与指定命名空间相关的代码示例
+function findRelatedExamples(matchedNamespaces, userText) {
+    const examples = []
+    const lowerText = (userText || '').toLowerCase()
+
+    // 合并两个坐标系的示例数据
+    const allCategories = [...(SANDBOX_CATEGORIES || []), ...(SANDBOX_CATEGORIES_GCS || [])]
+
+    for (const category of allCategories) {
+        for (const item of (category.items || [])) {
+            for (const method of (item.methods || [])) {
+                // 检查代码是否使用了匹配的命名空间
+                const codeStr = method.code || ''
+                const isNsMatch = matchedNamespaces.some(ns => codeStr.includes(`fdapi.${ns}.`))
+
+                if (isNsMatch) {
+                    // 进一步过滤：如果用户有具体关键词，优先匹配相关示例
+                    const methodText = `${method.name} ${method.tip || ''} ${codeStr}`.toLowerCase()
+                    const hasKeyword = lowerText && (
+                        methodText.includes(lowerText) ||
+                        lowerText.split(/\s+/).some(word => word.length > 1 && methodText.includes(word))
+                    )
+
+                    examples.push({
+                        name: method.name,
+                        tip: method.tip || '',
+                        code: codeStr,
+                        priority: hasKeyword ? 1 : 2 // 关键词匹配优先级更高
+                    })
+                }
+            }
+        }
+    }
+
+    // 按优先级排序，关键词匹配的在前
+    examples.sort((a, b) => a.priority - b.priority)
+
+    // 限制示例数量，避免 token 过多（最多 5 个示例）
+    return examples.slice(0, 5)
+}
+
+// 根据用户问题匹配相关命名空间，拼出这些命名空间的真实方法签名和代码示例。
 // 命中才注入（控制 token）；未命中返回空串，行为与原先一致。
 function buildApiRef(text) {
+    console.log('🚀 ~ buildApiRef ~ text:', text)
     if (!text || !API_COMPLETIONS || !API_COMPLETIONS.ns) return ''
-    const lower = text.toLowerCase()
+
     const nss = Object.keys(API_COMPLETIONS.ns)
-    const matched = nss.filter(ns => lower.includes(ns.toLowerCase()) || (NS_ALIASES[ns] || []).some(a => text.includes(a))).slice(0, 5) // 最多 5 个命名空间，避免提示过大
+    // 允许用户使用英文/拼音小写来匹配 API 命名空间，如 "camera"
+    const lowerCaseText = text.toLowerCase()
+    // NS_ALIASES使用与中文-》英文映射的。
+    const matched = nss.filter(ns => lowerCaseText.includes(ns) || (NS_ALIASES[ns] || []).some(alias => text.includes(alias))).slice(0, 5) // 最多 5 个命名空间，避免提示过大
+
+    console.log('match为符合的api内容，[camera,weather,settings]', matched)
     if (matched.length === 0) return ''
+
     const lines = []
+
+    // 第一部分：API签名（来自 api-completions.js）
+    lines.push('以下是与本次问题相关的 API 真实签名，请严格按此参数顺序与类型生成，禁止臆造参数：')
     for (const ns of matched) {
-        lines.push(`【fdapi.${ns}】`)
+        lines.push(`\n【fdapi.${ns}】`)
         for (const m of API_COMPLETIONS.ns[ns]) {
             const info = (m.info || '').replace(/\s+/g, ' ').slice(0, 50)
             lines.push(`  fdapi.${ns}.${m.label}${m.detail}${info ? ' — ' + info : ''}`)
         }
     }
-    return '\n\n以下是与本次问题相关的 API 真实签名，请严格按此参数顺序与类型生成，禁止臆造参数：\n' + lines.join('\n')
+
+    // 第二部分：代码示例（来自 real-examples.js）
+    const examples = findRelatedExamples(matched, text)
+    if (examples.length > 0) {
+        lines.push('\n\n以下是相关 API 的实际使用示例（包含参数格式和调用方式）：')
+        for (const ex of examples) {
+            lines.push(`\n// ${ex.name}${ex.tip ? ' - ' + ex.tip : ''}`)
+            lines.push(ex.code)
+        }
+    }
+
+    return '\n' + lines.join('\n')
 }
 
 const PROVIDER_STORAGE = 'DtsAiProvider'
@@ -62,6 +125,7 @@ const PRIMARY_IDS = ['claude', 'openai', 'deepseek', 'qwen']
 // 这样所有有文档的方法都放行，只拦截 SDK 中不存在的「臆造」API。
 let _apiCachePromise = null
 
+// 构建一个 fdapi 所有有效 API 方法的完整集合（白名单），并将其存储在一个 Set 数据结构中，以便进行快速查找。将所有的的api以完整的形式存储到set当中
 function buildCompletionApis() {
     const s = new Set()
     if (API_COMPLETIONS && API_COMPLETIONS.ns) {
@@ -76,13 +140,26 @@ function buildCompletionApis() {
     return s
 }
 
+// api_example是对于每一个api的实际操作实例，以一个函数的形式展示的
+// 这个函数就是从这个文件中获取全部的fdapi.xxx.xxx,然后补充道set集合中去，作为api-completion的补充，防止遗漏
+// 但是我觉得的没有什么必要，有点多此一举。
 function fetchValidApis() {
+    // 检查缓存
     if (!_apiCachePromise) {
+        // 没有缓存就开始构建过程
         _apiCachePromise = (async () => {
-            const set = buildCompletionApis() // 权威：文档全集
+            const set = buildCompletionApis() // 权威：文档api全集
             try {
+                // api_examples.js明明是本地文件，没有使用import而是fetch的原因
+                // 1.我们需要的是js文件内的纯文本内容，而不是import导入的功能模块
+                // 2.import导入后，会被项目打包，后续如果没有使用到该功能，会成为负担
+                // 3.异步操作，不阻塞主进程。
+
+                // 返回的是一个promise，表示请求响应状态
                 const resp = await fetch('/api_examples.js')
+
                 if (resp.ok) {
+                    // text即为js文件的纯文本内容。
                     const text = await resp.text()
                     for (const m of text.match(/fdapi(?:\.\w+)+/g) || []) set.add(m)
                 }
@@ -95,7 +172,7 @@ function fetchValidApis() {
     return _apiCachePromise
 }
 
-// 返回生成文本中不在白名单内的 fdapi 调用列表
+// 在 AI 生成的回复文本中，找出所有 AI 可能“臆造”的、不存在的 fdapi 调用，并将它们作为一个列表返回。
 function findInvalidApis(responseText, whitelist) {
     if (!whitelist) return [] // 白名单未加载，放行
     const calls = responseText.match(/fdapi(?:\.\w+)+/g) || []
@@ -414,6 +491,7 @@ function MessageContent({ content, onInsert }) {
                         </div>
                     )
                 }
+
                 return (
                     <span key={i} style={{ whiteSpace: 'pre-wrap' }}>
                         {part}
