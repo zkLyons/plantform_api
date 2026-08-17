@@ -322,10 +322,7 @@ export default function PlaygroundPage() {
 
     // ── 折叠日志区 ──
     const toggleConsole = () => {
-<<<<<<< HEAD
-=======
         // useState的函数式更新：setConsoleCollapsed(c => !c) 这种写法是 React 中 useState 的一种函数式更新方式。它的作用是根据当前的状态值 c 来计算并返回新的状态值。在这个例子中，它会将 consoleCollapsed 的布尔值取反，从而实现日志区的折叠和展开。
->>>>>>> 279f21ced10f9305effdfe667588ddb20fd7b6e8
         setConsoleCollapsed(c => {
             const next = !c
             try {
