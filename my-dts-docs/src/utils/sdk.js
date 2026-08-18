@@ -19,6 +19,15 @@ export const matchCmdLog = text => text.match(new RegExp('{"__command.*?__player
 
 export const calcTimeDiffs = arr => arr.map((cur, i, a) => (i === 0 ? 0 : cur - a[i - 1]))
 
+// 强制隐藏 SDK 自带的启动信息浮层（__startupInfoPanel）。
+// SDK 设计上会在内部 OnReady 时自动隐藏，但实际运行中可能因状态时序未触发，
+// 这里通过 player 暴露的内部组件做一次兜底隐藏（SDK 未公开该方法，try/catch 保护）。
+export function hideStartupInfo() {
+    try {
+        window.fdplayer && window.fdplayer.startupInfo && window.fdplayer.startupInfo.hide && window.fdplayer.startupInfo.hide()
+    } catch {}
+}
+
 // 注入全局工具函数（示例代码依赖）,测试语句
 export function injectGlobalFunctions(writeLog, clearScreen) {
     window.log = (msg, noLineBreak, color) => writeLog(msg, noLineBreak, color)
@@ -31,8 +40,10 @@ export function injectGlobalFunctions(writeLog, clearScreen) {
 // 加载 SDK 配置和核心库,ceshiyuju
 export async function loadSdk(baseUrl, writeLog) {
     if (!window.__dtsSdkLoaded) {
+        // 加载ac_conf.js和ac.min.js files
         try {
             await loadScript(baseUrl + 'ac_conf.js')
+            console.log(loadScript(baseUrl + 'ac_conf.js'), '=====')
         } catch {
             /* ac_conf.js 可选 */
         }
@@ -45,7 +56,7 @@ export async function loadSdk(baseUrl, writeLog) {
         window.__dtsSdkLoaded = true
     }
 }
-//进行了一些修改,继续测试feat01分支
+
 // 销毁 SDK 实例
 export function destroySdk() {
     try {
@@ -61,9 +72,10 @@ export function destroySdk() {
 }
 
 // 初始化连接（云渲染 / WebSocket）
-export function initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp, setPort }) {
+export function initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp, setPort, onVideoLoaded }) {
     const HostConfig = window.HostConfig
     const urlParams = new URLSearchParams(window.location.search)
+    console.log(urlParams, 'urlparams')
     setStatus('connecting')
     console.log(window.HostConfig, 'HostConfig')
 
@@ -88,7 +100,10 @@ export function initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp
                 debugEventsPanel: urlParams.get('debugEventsPanel')
             },
             events: {
-                onVideoLoaded: () => writeLog('🎞️ 视频流已加载', false, 'green'),
+                onVideoLoaded: () => {
+                    writeLog('🎞️ 视频流已加载', false, 'green')
+                    hideStartupInfo()
+                },
                 onConnClose: e => {
                     writeLog('connection closed: ' + e.code, false, 'red')
                     setStatus('error')
@@ -137,4 +152,3 @@ export function initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp
     writeLog('🔌 正在连接 ' + (isCloud ? '云渲染服务（视频流）' : 'WebSocket API 服务') + ' ...')
     return true
 }
-// 有进行了一些修改,some chances

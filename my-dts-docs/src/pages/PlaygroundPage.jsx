@@ -4,7 +4,7 @@ import ExampleNav from '../components/Playground/ExampleNav'
 import PlayerPanel from '../components/Playground/PlayerPanel'
 import EditorPanel from '../components/Playground/EditorPanel'
 import ConsolePanel from '../components/Playground/ConsolePanel'
-import { loadSdk, destroySdk, initConnection, injectGlobalFunctions, sleep, escapeHtml, matchCmdLog, calcTimeDiffs } from '../utils/sdk'
+import { loadSdk, destroySdk, initConnection, injectGlobalFunctions, hideStartupInfo, sleep, escapeHtml, matchCmdLog, calcTimeDiffs } from '../utils/sdk'
 
 const DEFAULT_CODE = ['// 使用说明：', '//  (1) 左侧选择 API 示例：默认「点击即执行」，勾选"点击不执行"则只填入代码', '//  (2) 此处可直接编辑 JS 代码，按 Ctrl+Enter 或点击「执行JS」运行', '//  (3) 「执行JSON」可回放 __command 日志或执行原始 JSON 命令', '//  (4) 全局可用：fdapi / fdplayer / HostConfig / log() / sleep()', ''].join('\n')
 
@@ -184,8 +184,9 @@ export default function PlaygroundPage() {
                 setStatus('ready')
                 setCoordType(String(coordSystemType ?? '0'))
                 setCoordSel(String(coordSystemType ?? '0'))
+                hideStartupInfo()
                 writeLog('✅ 工程已就绪，可以调用 API（坐标系类型：' + (String(coordSystemType) === '1' ? '球面' : '投影') + '）', false, 'green')
-
+                // pendingAutoRunRef 是**"文档示例带进调试台自动执行"**的机制：如果用户是从文档页跳转过来（代码存在 SbPendingCode），就等 300ms 后自动 eval 执行。为什么 300ms？等视频流和 UI 稳定，避免一上来就跑失败
                 if (pendingAutoRunRef.current && !flagsRef.current.notExecute) {
                     pendingAutoRunRef.current = false
                     setTimeout(() => {
@@ -233,7 +234,17 @@ export default function PlaygroundPage() {
                 }
                 return
             }
-            if (!disposed) initConnection({ isCloud, apiOptions, writeLog, setStatus, setIp, setPort })
+
+            if (!disposed)
+                initConnection({
+                    isCloud,
+                    apiOptions,
+                    writeLog,
+                    setStatus,
+                    setIp,
+                    setPort,
+                    onVideoLoaded: () => setConsoleCollapsed(true)
+                })
         })()
 
         return () => {
